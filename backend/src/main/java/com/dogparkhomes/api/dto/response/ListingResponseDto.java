@@ -29,4 +29,9 @@ public class ListingResponseDto implements Serializable {
     private double distanceToDogPark;
     
     private String imageUrl;
+
+    /**
+     * Optional analysis scores for the nearest dog park, as produced by Nova.
+     */
+    private DogParkAnalysisDto nearestDogParkAnalysis;
 }

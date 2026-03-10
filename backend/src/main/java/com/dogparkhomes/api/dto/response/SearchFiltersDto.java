@@ -21,4 +21,9 @@ public class SearchFiltersDto {
 
     private String price_range;
 
+    /**
+     * Optional inferred radius in miles (from natural language query).
+     */
+    private Double radius_miles;
+
 }

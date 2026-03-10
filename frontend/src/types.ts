@@ -10,6 +10,7 @@ export interface Listing {
   nearestDogParkRating: number;
   distanceToDogPark: number;
   imageUrl: string | null;
+  nearestDogParkAnalysis?: DogParkAnalysis;
 }
 
 export interface DogParkAnalysis {

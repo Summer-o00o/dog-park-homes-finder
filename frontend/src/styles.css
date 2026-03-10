@@ -259,6 +259,16 @@ code {
   gap: 0.2rem;
 }
 
+.listing-card-analysis {
+  flex-basis: 100%;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.listing-card-analysis span {
+  white-space: nowrap;
+}
+
 .listing-card-park {
   color: #a78bfa;
   font-size: 0.8rem;

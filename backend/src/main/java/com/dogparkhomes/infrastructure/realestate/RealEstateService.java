@@ -33,6 +33,7 @@ public class RealEstateService {
                     listing.setNearestDogParkName(dogPark.getName());
                     listing.setNearestDogParkRating(dogPark.getRating());
                     listing.setDistanceToDogPark(distanceMiles);
+                    listing.setNearestDogParkAnalysis(dogPark.getAnalysis());
                     allListings.add(listing);
                 }
             }

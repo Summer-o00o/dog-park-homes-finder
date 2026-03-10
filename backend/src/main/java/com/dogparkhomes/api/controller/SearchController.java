@@ -7,7 +7,6 @@ import com.dogparkhomes.api.dto.response.SearchResponseDto;
 import com.dogparkhomes.infrastructure.nova.NovaService;
 import com.dogparkhomes.infrastructure.google.GooglePlacesService;
 import com.dogparkhomes.infrastructure.realestate.RealEstateService;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +22,7 @@ public class SearchController {
     private final NovaService novaService;
     private final GooglePlacesService googlePlacesService;
     private final RealEstateService realEstateService;
+    private static final double DEFAULT_RADIUS_MILES = 2.0;
 
     public SearchController(NovaService novaService, GooglePlacesService googlePlacesService, RealEstateService realEstateService) {
         this.novaService = novaService;
@@ -39,8 +39,30 @@ public class SearchController {
         List<DogParkDto> parks =
                 googlePlacesService.searchDogParks(filters.getLocation());
 
+        double radiusMiles = resolveRadiusMiles(filters);
+
         // call Real Estate API
-        List<ListingResponseDto> listings = realEstateService.searchHouses(parks, 2);
+        List<ListingResponseDto> listings = realEstateService.searchHouses(parks, radiusMiles);
         return new SearchResponseDto(listings, parks);
+    }
+
+    private double resolveRadiusMiles(SearchFiltersDto filters) {
+        Double inferredRadius = filters.getRadius_miles();
+        if (inferredRadius != null) {
+            return clampRadiusMiles(inferredRadius);
+        }
+
+        return DEFAULT_RADIUS_MILES;
+    }
+
+    private double clampRadiusMiles(Double radiusMiles) {
+        if (radiusMiles == null || radiusMiles.isNaN() || radiusMiles.isInfinite()) {
+            return DEFAULT_RADIUS_MILES;
+        }
+        // Keep within sane bounds to avoid huge API calls / accidental abuse
+        double r = radiusMiles;
+        if (r < 0.1) return 0.1;
+        if (r > 50) return 50;
+        return r;
     }
 }

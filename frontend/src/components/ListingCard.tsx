@@ -36,14 +36,27 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onMouseEnter, onMous
           {listing.bedrooms} bed · {listing.bathrooms} bath
         </p>
         <div className="listing-card-scores">
-          <span className="listing-card-score" title="Nearest dog park rating">
-            ★ {listing.nearestDogParkRating.toFixed(1)}
-          </span>
-          <span className="listing-card-score" title="Distance to dog park">
-            {listing.distanceToDogPark.toFixed(1)} mi to park
-          </span>
           {listing.nearestDogParkName && (
-            <span className="listing-card-park">{listing.nearestDogParkName}</span>
+            <span className="listing-card-score" title="Distance to nearest dog park">
+              {listing.distanceToDogPark.toFixed(1)} mi to dog park
+            </span>
+          )}
+          {listing.nearestDogParkName && (
+            <span className="listing-card-park" title="Nearest dog park rating and name">
+              ★ {listing.nearestDogParkRating.toFixed(1)} · {listing.nearestDogParkName}
+            </span>
+          )}
+          {listing.nearestDogParkAnalysis && (
+            <div
+              className="listing-card-score listing-card-analysis"
+              title="Dog park analysis (parking / crowded / cleanliness / dog-friendliness / park size)"
+            >
+              <span>Parking {listing.nearestDogParkAnalysis.parkingScore}/10</span>
+              <span> · Crowded {listing.nearestDogParkAnalysis.crowdedScore}/10</span>
+              <span> · Clean {listing.nearestDogParkAnalysis.cleanlinessScore}/10</span>
+              <span> · Dog {listing.nearestDogParkAnalysis.dogFriendlinessScore}/10</span>
+              <span> · Size {listing.nearestDogParkAnalysis.parkSizeScore}/10</span>
+            </div>
           )}
         </div>
       </div>

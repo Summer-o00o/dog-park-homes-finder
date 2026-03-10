@@ -29,8 +29,10 @@ public class NovaService {
             ObjectMapper mapper = new ObjectMapper();
             String prompt = """
                     You are a real estate search assistant. Extract structured search filters from the user query. \
-                    Return ONLY valid JSON with exactly these field names (no other names): location, property_type, amenities, price_range. \
+                    Return ONLY valid JSON with exactly these field names (no other names): location, property_type, amenities, price_range, radius_miles. \
                     Use "amenities" for any amenity list (not nearby_amenities or similar). Do not explain. \
+                    If the user specifies a search radius (e.g., "within 2 miles", "5 km"), set radius_miles to a NUMBER in miles (convert km to miles). \
+                    If no radius is requested, set radius_miles to null. \
                     User query: %s
                     """.formatted(query);
 
