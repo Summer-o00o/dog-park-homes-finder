@@ -1,0 +1,138 @@
+# Homes Around Dog Parks
+
+Full-stack hackathon project that finds homes for sale **near highly rated dog parks**, using:
+
+- **Frontend**: React + Vite + TypeScript + Google Maps (`@react-google-maps/api`)
+- **Backend**: Spring Boot (Java 17) + Redis caching (optional) + Google Places API + RentCast listings + Amazon Bedrock (Amazon Nova)
+
+## Repo structure
+
+- `frontend/`: Vite app (runs on `http://localhost:5173`)
+- `backend/`: Spring Boot API (runs on `http://localhost:8000`)
+
+## How it works (high level)
+
+1. User enters a natural-language prompt in the UI (e.g., “Seattle, walkable parks, under $900k”).
+2. Backend calls **Amazon Nova** to parse the prompt into structured filters (currently used to extract location).
+3. Backend calls **Google Places** to find dog parks in that location, filters by rating, and fetches reviews.
+4. Backend calls **Amazon Nova** again to score dog park reviews (parking/crowded/cleanliness/etc.). Results are cached.
+5. Backend calls **RentCast** for homes-for-sale near the selected dog park(s), and assigns nearest park + distance.
+6. Frontend renders results as a list + map, with markers for homes and dog parks.
+
+## Prerequisites
+
+- **Node.js** (for frontend)
+- **Java 17** (for backend)
+- Optional: **Redis** (for caching)
+
+## Environment variables
+
+### Backend (`.env`)
+
+Copy `.env.example` to `.env` at the repo root and fill in values.
+
+- **Required**
+  - `GOOGLE_PLACES_API_KEY`: used by backend to search dog parks + fetch reviews (Google Places API v1)
+  - `REALESTATE_API_KEY`: RentCast API key (sent as `X-Api-Key`)
+- **Required for Nova features**
+  - `NOVA_REGION` (default is set in `application.properties`)
+  - `NOVA_ENDPOINT` (optional depending on your AWS setup)
+  - `NOVA_API_KEY` (optional depending on auth; see notes below)
+- **Optional**
+  - `REDIS_HOST` (default `localhost`)
+  - `REDIS_PORT` (default `6379`)
+  - `IMAGE_STORAGE_PATH` (default `./data/images`)
+
+Notes:
+
+- The backend uses the AWS SDK `bedrockruntime` client; credentials are typically provided via standard AWS credential resolution (env vars, shared config, IAM role). The `NOVA_API_KEY` env var is present but may not be required depending on how you authenticate to AWS.
+
+### Frontend (`frontend/.env`)
+
+Copy `frontend/.env.example` to `frontend/.env` and set:
+
+- `VITE_GOOGLE_MAPS_API_KEY`: required to render the map UI
+
+The Vite dev server proxies:
+
+- `/api/*` → `http://localhost:8000`
+- `/images/*` → `http://localhost:8000`
+
+## Run locally
+
+### 1) Start the backend
+
+From `backend/`:
+
+```bash
+mvn spring-boot:run
+```
+
+Backend will start on `http://localhost:8000`.
+
+#### Running without Redis
+
+If you don’t have Redis running, start Spring with the `no-redis` profile:
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=no-redis
+```
+
+### 2) Start the frontend
+
+From `frontend/`:
+
+```bash
+npm install
+npm run dev
+```
+
+Frontend will start on `http://localhost:5173` and open a browser window.
+
+## API
+
+### `POST /api/search`
+
+Request body:
+
+```json
+{ "query": "San Francisco, near a clean dog park" }
+```
+
+Response body (shape used by the frontend):
+
+- `listings[]`: home results with `latitude/longitude`, `price`, `imageUrl`, and nearest dog park fields
+- `dogParks[]`: dog parks with `rating`, `userRatingCount`, optional `reviews[]` and `analysis`
+
+## Images
+
+Listings set `imageUrl` to a local path under `/images/...` (served by the backend). The frontend will display images and map markers may use circular thumbnails when available.
+
+The images directory is intentionally ignored by git (`backend/src/main/resources/static/images/`).
+
+## Tech notes / implementation details
+
+- **Ports**
+  - Backend: `8000` (`server.port=8000`)
+  - Frontend: `5173` (Vite dev server)
+- **Caching**
+  - Redis caching is enabled by default (`@EnableCaching`, `spring.cache.type=redis`)
+  - Some calls are `@Cacheable` (e.g., listing fetches and dog park analysis)
+- **Dog park selection**
+  - Current implementation stops after finding the first sufficiently high-rated park (rating threshold is `>= 4.8`).
+
+## Linting / build
+
+Frontend:
+
+```bash
+npm run lint
+npm run build
+```
+
+Backend:
+
+```bash
+mvn test
+```
+
