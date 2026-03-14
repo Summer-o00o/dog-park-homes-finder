@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useJsApiLoader, GoogleMap, Marker } from '@react-google-maps/api';
 import type { Listing, DogPark } from '../types';
 
@@ -26,14 +26,6 @@ function getHouseIconUrl(backgroundColor: string, strokeColor: string, strokeWid
   return 'data:image/svg+xml,' + encodeURIComponent(svg);
 }
 
-function getFullImageUrl(imageUrl: string | null): string | null {
-  if (!imageUrl) return null;
-  return imageUrl.startsWith('http') ? imageUrl : `${typeof window !== 'undefined' ? window.location.origin : ''}${imageUrl}`;
-}
-
-const LISTING_ICON_SIZE = 34;
-const LISTING_ICON_SIZE_HOVERED = 39;
-
 const HOUSE_ICON_DEFAULT: google.maps.Icon = {
   url: getHouseIconUrl('#ef4444', '#b91c1c'),
   scaledSize: { width: 36, height: 36 } as google.maps.Size,
@@ -46,84 +38,23 @@ const HOUSE_ICON_HOVERED: google.maps.Icon = {
   anchor: { x: 18, y: 18 } as google.maps.Point,
 };
 
-function makeCircularImageDataUrl(imageUrl: string, size: number): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        reject(new Error('No canvas context'));
-        return;
-      }
-      const r = size / 2;
-      ctx.beginPath();
-      ctx.arc(r, r, r, 0, Math.PI * 2);
-      ctx.closePath();
-      ctx.clip();
-      ctx.drawImage(img, 0, 0, size, size);
-      try {
-        resolve(canvas.toDataURL('image/png'));
-      } catch {
-        reject(new Error('toDataURL failed'));
-      }
-    };
-    img.onerror = () => reject(new Error('Image load failed'));
-    img.src = imageUrl;
-  });
-}
-
 interface ResultsMapProps {
   listings: Listing[];
   dogParks: DogPark[];
   hoveredListingId?: string | null;
 }
 
-function getListingMarkerIcon(
-  listing: Listing,
-  hoveredListingId: string | null,
-  circularIconUrl: string | undefined
-): google.maps.Icon {
+function getListingMarkerIcon(listing: Listing, hoveredListingId: string | null): google.maps.Icon {
   const isHovered = listing.id === hoveredListingId;
-  const size = isHovered ? LISTING_ICON_SIZE_HOVERED : LISTING_ICON_SIZE;
-  const anchor = size / 2;
-
-  if (circularIconUrl) {
-    return {
-      url: circularIconUrl,
-      scaledSize: { width: size, height: size } as google.maps.Size,
-      anchor: { x: anchor, y: anchor } as google.maps.Point,
-    };
-  }
   return isHovered ? HOUSE_ICON_HOVERED : HOUSE_ICON_DEFAULT;
 }
 
 const ResultsMap: React.FC<ResultsMapProps> = ({ listings, dogParks, hoveredListingId = null }) => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? '';
-  const [listingCircularIcons, setListingCircularIcons] = useState<Record<string, string>>({});
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: apiKey,
   });
-
-  useEffect(() => {
-    setListingCircularIcons({});
-    if (!listings.length) return;
-    const size = LISTING_ICON_SIZE;
-    listings.forEach((listing) => {
-      const fullUrl = getFullImageUrl(listing.imageUrl);
-      if (!fullUrl) return;
-      const id = listing.id;
-      makeCircularImageDataUrl(fullUrl, size)
-        .then((dataUrl) => {
-          setListingCircularIcons((prev) => ({ ...prev, [id]: dataUrl }));
-        })
-        .catch(() => {});
-    });
-  }, [listings]);
 
   const mapRef = React.useRef<google.maps.Map | null>(null);
   const onMapLoad = useCallback((map: google.maps.Map) => {
@@ -196,7 +127,7 @@ const ResultsMap: React.FC<ResultsMapProps> = ({ listings, dogParks, hoveredList
           key={listing.id}
           position={{ lat: listing.latitude, lng: listing.longitude }}
           title={listing.address}
-          icon={getListingMarkerIcon(listing, hoveredListingId, listingCircularIcons[listing.id])}
+          icon={getListingMarkerIcon(listing, hoveredListingId)}
           zIndex={listing.id === hoveredListingId ? 3 : 1}
         />
       ))}

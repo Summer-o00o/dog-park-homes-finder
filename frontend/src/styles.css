@@ -282,8 +282,7 @@ code {
   align-self: start;
   display: flex;
   min-height: 350px;
-  height: 400px;
-  max-height: calc(100vh - 2rem);
+  height: calc(100vh - 2.5rem);
   background: rgba(15, 23, 42, 0.9);
   overflow: hidden;
   border-radius: 0.75rem;

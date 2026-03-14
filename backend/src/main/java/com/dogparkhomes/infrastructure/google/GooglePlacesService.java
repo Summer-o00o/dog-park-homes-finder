@@ -55,7 +55,7 @@ public class GooglePlacesService {
             List<DogParkDto> parks = new ArrayList<>();
 
             for (JsonNode place : root.path("places")) {
-                if (parks.size() >= 1) {
+                if (parks.size() >= 2) {
                     break;
                 }
 

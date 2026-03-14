@@ -51,11 +51,12 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, onMouseEnter, onMous
               className="listing-card-score listing-card-analysis"
               title="Dog park analysis (parking / crowded / cleanliness / dog-friendliness / park size)"
             >
+              <strong>AI generated: </strong>
               <span>Parking {listing.nearestDogParkAnalysis.parkingScore}/10</span>
               <span> · Crowded {listing.nearestDogParkAnalysis.crowdedScore}/10</span>
               <span> · Clean {listing.nearestDogParkAnalysis.cleanlinessScore}/10</span>
-              <span> · Dog {listing.nearestDogParkAnalysis.dogFriendlinessScore}/10</span>
-              <span> · Size {listing.nearestDogParkAnalysis.parkSizeScore}/10</span>
+              <span> · Dog friendliness {listing.nearestDogParkAnalysis.dogFriendlinessScore}/10</span>
+              <span> · Park size {listing.nearestDogParkAnalysis.parkSizeScore}/10</span>
             </div>
           )}
         </div>
