@@ -32,7 +32,7 @@ const App: React.FC = () => {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Homes Around Dog Parks</h1>
+        <h1>Dog Park Homes Finder</h1>
         <p>Find homes your dog will love.</p>
       </header>
       <main className="app-main">

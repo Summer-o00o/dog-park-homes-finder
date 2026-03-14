@@ -11,12 +11,22 @@ import java.net.URL;
 @Service
 public class ImageService {
 
-    private static final String IMAGE_FOLDER = "src/main/resources/static/images/";
+    private static final String DEFAULT_IMAGE_FOLDER = "src/main/resources/static/images/";
+
+    private final String imageFolder;
+
+    public ImageService() {
+        this(DEFAULT_IMAGE_FOLDER);
+    }
+
+    public ImageService(String imageFolder) {
+        this.imageFolder = imageFolder.endsWith("/") ? imageFolder : imageFolder + "/";
+    }
 
     public String getOrDownloadImage(String listingId, String imageUrl) {
         try {
             String fileName = listingId + ".jpg";
-            File file = new File(IMAGE_FOLDER + fileName);
+            File file = new File(imageFolder + fileName);
 
             // already exists
             if (file.exists()) {
@@ -24,6 +34,9 @@ public class ImageService {
             }
 
             // download
+            if (file.getParentFile() != null && !file.getParentFile().exists()) {
+                file.getParentFile().mkdirs();
+            }
             URI uri = URI.create(imageUrl);
             URL url = uri.toURL();
 

@@ -14,13 +14,14 @@ import java.util.List;
 @Service
 public class GooglePlacesService {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final NovaService novaService;
 
     @Value("${google.places.api-key}")
     private String apiKey;
 
-    public GooglePlacesService(NovaService novaService) {
+    public GooglePlacesService(RestTemplate restTemplate, NovaService novaService) {
+        this.restTemplate = restTemplate;
         this.novaService = novaService;
     }
 

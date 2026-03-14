@@ -1,6 +1,6 @@
-# Homes Around Dog Parks
+# Dog Park Homes Finder
 
-Full-stack hackathon project that finds homes for sale **near highly rated dog parks**, using:
+**Amazon Hackathon** — Full-stack app that finds homes for sale **near highly rated dog parks**, using:
 
 - **Frontend**: React + Vite + TypeScript + Google Maps (`@react-google-maps/api`)
 - **Backend**: Spring Boot (Java 17) + Redis caching (optional) + Google Places API + RentCast listings + Amazon Bedrock (Amazon Nova)
