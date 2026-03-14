@@ -12,6 +12,13 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchFiltersDto {
 
+    /**
+     * When false, Nova could not extract a valid location; {@link #message} contains the reason.
+     */
+    private Boolean valid;
+
+    private String message;
+
     private String location;
 
     private String property_type;

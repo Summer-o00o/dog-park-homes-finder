@@ -2,6 +2,7 @@ package com.dogparkhomes.infrastructure.nova;
 
 import com.dogparkhomes.api.dto.response.DogParkAnalysisDto;
 import com.dogparkhomes.api.dto.response.SearchFiltersDto;
+import com.dogparkhomes.api.exception.InvalidSearchQueryException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +37,7 @@ class NovaServiceTest {
     @Test
     void parseUserQuery_returnsSearchFilters_whenBedrockReturnsValidJson() throws Exception {
         SearchFiltersDto expected = new SearchFiltersDto();
+        expected.setValid(true);
         expected.setLocation("Seattle");
         expected.setProperty_type("house");
         expected.setAmenities(List.of("yard", "fence"));
@@ -68,6 +70,7 @@ class NovaServiceTest {
     @Test
     void parseUserQuery_stripsMarkdownCodeBlock_fromBedrockResponse() throws Exception {
         SearchFiltersDto expected = new SearchFiltersDto();
+        expected.setValid(true);
         expected.setLocation("Portland");
         expected.setProperty_type("apartment");
         expected.setRadius_miles(null);
@@ -87,6 +90,23 @@ class NovaServiceTest {
         assertEquals("Portland", result.getLocation());
         assertEquals("apartment", result.getProperty_type());
         assertNull(result.getRadius_miles());
+    }
+
+    @Test
+    void parseUserQuery_throwsInvalidSearchQuery_whenNovaReturnsValidFalse() throws Exception {
+        String invalidJson = """
+                {"valid": false, "message": "No location in your query. Please enter a city or address."}
+                """;
+        String responseBody = buildBedrockResponseBody(invalidJson);
+
+        when(bedrockRuntimeClient.invokeModel(any(InvokeModelRequest.class)))
+                .thenReturn(InvokeModelResponse.builder()
+                        .body(SdkBytes.fromString(responseBody, StandardCharsets.UTF_8))
+                        .build());
+
+        InvalidSearchQueryException thrown = assertThrows(InvalidSearchQueryException.class,
+                () -> novaService.parseUserQuery("asdf ???"));
+        assertTrue(thrown.getMessage().contains("No location in your query"));
     }
 
     @Test

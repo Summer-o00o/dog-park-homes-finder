@@ -8,6 +8,8 @@ import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.dogparkhomes.api.dto.response.SearchFiltersDto;
+import com.dogparkhomes.api.exception.InvalidSearchQueryException;
+
 import java.util.List;
 import com.dogparkhomes.api.dto.response.DogParkAnalysisDto;
 import java.nio.charset.StandardCharsets;
@@ -28,11 +30,11 @@ public class NovaService {
         try {
             ObjectMapper mapper = new ObjectMapper();
             String prompt = """
-                    You are a real estate search assistant. Extract structured search filters from the user query. \
-                    Return ONLY valid JSON with exactly these field names (no other names): location, property_type, amenities, price_range, radius_miles. \
-                    Use "amenities" for any amenity list (not nearby_amenities or similar). Do not explain. \
-                    If the user specifies a search radius (e.g., "within 2 miles", "5 km"), set radius_miles to a NUMBER in miles (convert km to miles). \
-                    If no radius is requested, set radius_miles to null. \
+                    You are a real estate search assistant. Extract structured search filters from the user query.
+                    Return ONLY valid JSON. Do not explain.
+                    If the user query does NOT contain a clear location (city, address, or region), return: {"valid": false, "message": "A short reason in English, e.g. We couldn't identify a location. Please enter a city or address."}
+                    If the query is empty, gibberish, or has no place name, return valid false with message.
+                    If the query HAS a clear location, return: {"valid": true, "location": "<extracted place>", "property_type": null or string, "amenities": null or array, "price_range": null or string, "radius_miles": null or number}. Use "amenities" for any amenity list. If the user specifies a search radius (e.g. "within 2 miles", "5 km"), set radius_miles to a NUMBER in miles (convert km to miles). If the user says walkable distance, walking distance, or similar (e.g. "within walking distance", "walkable"), set radius_miles to 0.5. If no radius is specified, set radius_miles to 2.
                     User query: %s
                     """.formatted(query);
 
@@ -85,8 +87,17 @@ public class NovaService {
 
             ObjectMapper mapper2 = new ObjectMapper();
             SearchFiltersDto filters = mapper2.readValue(text, SearchFiltersDto.class);
+
+            if (Boolean.FALSE.equals(filters.getValid()) || (filters.getMessage() != null && !filters.getMessage().isBlank())) {
+                String msg = filters.getMessage() != null && !filters.getMessage().isBlank()
+                        ? filters.getMessage()
+                        : "We couldn't identify a location. Please enter a city or address.";
+                throw new InvalidSearchQueryException(msg);
+            }
             return filters;
 
+        } catch (InvalidSearchQueryException e) {
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Error calling Nova", e);

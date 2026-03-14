@@ -9,7 +9,14 @@ export async function searchListings(query: string): Promise<SearchResponse> {
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || `Search failed: ${res.status}`);
+    let message = `Search failed: ${res.status}`;
+    try {
+      const body = JSON.parse(text) as { message?: string };
+      if (body?.message) message = body.message;
+    } catch {
+      if (text) message = text;
+    }
+    throw new Error(message);
   }
 
   return res.json();

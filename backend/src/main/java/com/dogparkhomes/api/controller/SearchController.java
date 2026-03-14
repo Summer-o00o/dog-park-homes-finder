@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.dogparkhomes.api.dto.response.DogParkDto;
+import com.dogparkhomes.api.exception.InvalidSearchQueryException;
 
 import java.util.List;
 
@@ -33,11 +34,19 @@ public class SearchController {
     @PostMapping("/search")
     public SearchResponseDto search(@RequestBody SearchRequestDto request) {
         String query = request.getQuery();
+        if (query == null || query.isBlank()) {
+            throw new InvalidSearchQueryException("Please enter a search query (e.g. city or address).");
+        }
         SearchFiltersDto filters = novaService.parseUserQuery(query);
+
+        String location = filters.getLocation();
+        if (location == null || location.isBlank()) {
+            throw new InvalidSearchQueryException("We couldn't identify a location. Please enter a city or address.");
+        }
 
         // call Google Places API
         List<DogParkDto> parks =
-                googlePlacesService.searchDogParks(filters.getLocation());
+                googlePlacesService.searchDogParks(location);
 
         double radiusMiles = resolveRadiusMiles(filters);
 
