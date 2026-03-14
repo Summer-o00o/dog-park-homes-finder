@@ -1,9 +1,9 @@
 # Dog Park Homes Finder
 
-**Amazon Hackathon** — Full-stack app that finds homes for sale **near highly rated dog parks**, using:
+**Amazon Nova AI Hackathon** — Full-stack app that finds homes for sale **near highly rated dog parks**. Built for the Amazon Nova AI Hackathon; uses **Amazon Nova 2 Lite** (via Bedrock) for natural-language query parsing and dog park review analysis.
 
 - **Frontend**: React + Vite + TypeScript + Google Maps (`@react-google-maps/api`)
-- **Backend**: Spring Boot (Java 17) + Redis caching (optional) + Google Places API + RentCast listings + Amazon Bedrock (Amazon Nova)
+- **Backend**: Spring Boot (Java 17) + Redis caching (optional) + Google Places API + RentCast listings + Amazon Bedrock (**Nova 2 Lite**)
 
 ## Repo structure
 
@@ -13,9 +13,9 @@
 ## How it works (high level)
 
 1. User enters a natural-language prompt in the UI (e.g., “Seattle, walkable parks, under $900k”).
-2. Backend calls **Amazon Nova** to parse the prompt into structured filters (currently used to extract location).
+2. Backend calls **Nova 2 Lite** to parse the prompt into structured filters (currently used to extract location).
 3. Backend calls **Google Places** to find dog parks in that location, filters by rating, and fetches reviews.
-4. Backend calls **Amazon Nova** again to score dog park reviews (parking/crowded/cleanliness/etc.). Results are cached.
+4. Backend calls **Nova 2 Lite** again to score dog park reviews (parking/crowded/cleanliness/etc.). Results are cached.
 5. Backend calls **RentCast** for homes-for-sale near the selected dog park(s), and assigns nearest park + distance.
 6. Frontend renders results as a list + map, with markers for homes and dog parks.
 
@@ -112,6 +112,8 @@ The images directory is intentionally ignored by git (`backend/src/main/resource
 
 ## Tech notes / implementation details
 
+- **AI model**
+  - Amazon **Nova 2 Lite** is used for prompt parsing and dog park review analysis (via AWS Bedrock).
 - **Ports**
   - Backend: `8000` (`server.port=8000`)
   - Frontend: `5173` (Vite dev server)
