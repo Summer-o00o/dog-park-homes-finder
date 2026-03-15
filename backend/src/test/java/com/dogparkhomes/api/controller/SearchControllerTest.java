@@ -31,7 +31,7 @@ class SearchControllerTest {
         filters.setRadius_miles(4.0);
         when(novaService.parseUserQuery(eq("hello"))).thenReturn(filters);
         when(googlePlacesService.searchDogParks(eq("Austin"))).thenReturn(Collections.emptyList());
-        when(realEstateService.searchHouses(any(), anyDouble())).thenReturn(Collections.emptyList());
+        when(realEstateService.searchHouses(any(), anyDouble(), any(), any())).thenReturn(Collections.emptyList());
 
         SearchController controller = new SearchController(novaService, googlePlacesService, realEstateService);
 
@@ -41,7 +41,7 @@ class SearchControllerTest {
         controller.search(request);
 
         ArgumentCaptor<Double> radiusCaptor = ArgumentCaptor.forClass(Double.class);
-        verify(realEstateService).searchHouses(any(), radiusCaptor.capture());
+        verify(realEstateService).searchHouses(any(), radiusCaptor.capture(), any(), any());
         assertThat(radiusCaptor.getValue()).isEqualTo(4.0);
     }
 
@@ -56,7 +56,7 @@ class SearchControllerTest {
         filters.setRadius_miles(null);
         when(novaService.parseUserQuery(eq("hello"))).thenReturn(filters);
         when(googlePlacesService.searchDogParks(eq("Denver"))).thenReturn(Collections.emptyList());
-        when(realEstateService.searchHouses(any(), anyDouble())).thenReturn(Collections.emptyList());
+        when(realEstateService.searchHouses(any(), anyDouble(), any(), any())).thenReturn(Collections.emptyList());
 
         SearchController controller = new SearchController(novaService, googlePlacesService, realEstateService);
 
@@ -66,7 +66,7 @@ class SearchControllerTest {
         controller.search(request);
 
         ArgumentCaptor<Double> radiusCaptor = ArgumentCaptor.forClass(Double.class);
-        verify(realEstateService).searchHouses(any(), radiusCaptor.capture());
+        verify(realEstateService).searchHouses(any(), radiusCaptor.capture(), any(), any());
         assertThat(radiusCaptor.getValue()).isEqualTo(2.0);
     }
 
@@ -81,7 +81,7 @@ class SearchControllerTest {
         filters.setRadius_miles(Double.NaN);
         when(novaService.parseUserQuery(eq("hello"))).thenReturn(filters);
         when(googlePlacesService.searchDogParks(eq("Miami"))).thenReturn(Collections.emptyList());
-        when(realEstateService.searchHouses(any(), anyDouble())).thenReturn(Collections.emptyList());
+        when(realEstateService.searchHouses(any(), anyDouble(), any(), any())).thenReturn(Collections.emptyList());
 
         SearchController controller = new SearchController(novaService, googlePlacesService, realEstateService);
 
@@ -91,7 +91,7 @@ class SearchControllerTest {
         controller.search(request);
 
         ArgumentCaptor<Double> radiusCaptor = ArgumentCaptor.forClass(Double.class);
-        verify(realEstateService).searchHouses(any(), radiusCaptor.capture());
+        verify(realEstateService).searchHouses(any(), radiusCaptor.capture(), any(), any());
         assertThat(radiusCaptor.getValue()).isEqualTo(2.0);
     }
 }

@@ -41,13 +41,15 @@ public class RealEstateService {
         this.cacheManager = cacheManager;
     }
 
-    public List<ListingResponseDto> searchHouses(List<DogParkDto> dogParks, double radiusMiles) {
+    public List<ListingResponseDto> searchHouses(List<DogParkDto> dogParks, double radiusMiles, Double priceMin, Double priceMax) {
         List<ListingResponseDto> allListings = new ArrayList<>();
         for (DogParkDto dogPark : dogParks) {
             List<ListingResponseDto> listings = fetchListings(
                     dogPark.getLatitude(),
                     dogPark.getLongitude(),
-                    radiusMiles
+                    radiusMiles,
+                    priceMin,
+                    priceMax
             );
             for (ListingResponseDto listing : listings) {
                 double distanceMiles = DistanceUtil.haversineMiles(
@@ -66,8 +68,8 @@ public class RealEstateService {
         return allListings;
     }
 
-    public List<ListingResponseDto> fetchListings(double latitude, double longitude, double radiusMiles) {
-        String cacheKey = latitude + "," + longitude + "," + radiusMiles;
+    public List<ListingResponseDto> fetchListings(double latitude, double longitude, double radiusMiles, Double priceMin, Double priceMax) {
+        String cacheKey = buildListingCacheKey(latitude, longitude, radiusMiles, priceMin, priceMax);
         Cache cache = cacheManager != null ? cacheManager.getCache(LISTING_CACHE_NAME) : null;
         if (cache != null) {
             Cache.ValueWrapper wrapper = cache.get(cacheKey);
@@ -78,12 +80,7 @@ public class RealEstateService {
             }
         }
 
-        String url = String.format(
-                "https://api.rentcast.io/v1/listings/sale?latitude=%f&longitude=%f&radius=%f",
-                latitude,
-                longitude,
-                radiusMiles
-        );
+        String url = buildListingsUrl(latitude, longitude, radiusMiles, priceMin, priceMax);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Api-Key", apiKey);
@@ -98,8 +95,28 @@ public class RealEstateService {
 
         String body = response.getBody();
         List<ListingResponseDto> listings = parseListings(body);
+        System.out.println("call rentcast api success");
         if (cache != null) cache.put(cacheKey, listings);
         return listings;
+    }
+
+    private static String buildListingCacheKey(double latitude, double longitude, double radiusMiles, Double priceMin, Double priceMax) {
+        return latitude + "," + longitude + "," + radiusMiles + "," + priceMin + "," + priceMax;
+    }
+
+    private String buildListingsUrl(double latitude, double longitude, double radiusMiles, Double priceMin, Double priceMax) {
+        String base = String.format(
+                "https://api.rentcast.io/v1/listings/sale?latitude=%f&longitude=%f&radius=%f",
+                latitude,
+                longitude,
+                radiusMiles
+        );
+        if (priceMin != null || priceMax != null) {
+            long min = priceMin != null ? priceMin.longValue() : 0L;
+            long max = priceMax != null ? priceMax.longValue() : 999_999_999L;
+            return base + "&price=" + min + ":" + max;
+        }
+        return base;
     }
 
     private List<ListingResponseDto> parseListings(String json) {

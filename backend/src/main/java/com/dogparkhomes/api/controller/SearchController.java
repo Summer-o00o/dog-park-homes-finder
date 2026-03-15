@@ -55,9 +55,10 @@ public class SearchController {
         List<DogParkDto> parks = googlePlacesService.searchDogParks(location);
 
         double radiusMiles = resolveRadiusMiles(filters);
+        PriceRange priceRange = resolvePriceRange(filters);
 
         // call Real Estate API
-        List<ListingResponseDto> listings = realEstateService.searchHouses(parks, radiusMiles);
+        List<ListingResponseDto> listings = realEstateService.searchHouses(parks, radiusMiles, priceRange.min(), priceRange.max());
         return new SearchResponseDto(listings, parks);
     }
 
@@ -80,4 +81,40 @@ public class SearchController {
         if (r > 50) return 50;
         return r;
     }
+
+    /**
+     * Parses Nova's price_range string ("min:max", "*:max", "min:*") into numeric bounds.
+     * Single number (e.g. "900000") is treated as at-most that price.
+     */
+    private PriceRange resolvePriceRange(SearchFiltersDto filters) {
+        String priceRange = filters.getPrice_range();
+        if (priceRange == null || priceRange.isBlank()) {
+            return new PriceRange(null, null);
+        }
+        String trimmed = priceRange.trim();
+        String[] parts = trimmed.split(":");
+        if (parts.length == 2) {
+            String left = parts[0].trim();
+            String right = parts[1].trim();
+            Double min = "*".equals(left) ? null : parseDoubleSafe(left);
+            Double max = "*".equals(right) ? null : parseDoubleSafe(right);
+            return new PriceRange(min, max);
+        }
+        Double single = parseDoubleSafe(trimmed);
+        if (single != null && single > 0) {
+            return new PriceRange(null, single);
+        }
+        return new PriceRange(null, null);
+    }
+
+    private static Double parseDoubleSafe(String s) {
+        if (s == null || s.isBlank()) return null;
+        try {
+            return Double.parseDouble(s.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private record PriceRange(Double min, Double max) {}
 }

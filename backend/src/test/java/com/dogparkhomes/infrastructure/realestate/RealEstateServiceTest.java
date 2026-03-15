@@ -56,7 +56,7 @@ class RealEstateServiceTest {
         when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(), eq(String.class)))
                 .thenReturn(ResponseEntity.ok(listingJson("within", 37.0, -122.0)));
 
-        List<ListingResponseDto> result = realEstateService.searchHouses(List.of(park), 2.0);
+        List<ListingResponseDto> result = realEstateService.searchHouses(List.of(park), 2.0, null, null);
 
         assertEquals(1, result.size());
         ListingResponseDto listing = result.get(0);
@@ -78,7 +78,7 @@ class RealEstateServiceTest {
         when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(), eq(String.class)))
                 .thenReturn(ResponseEntity.ok(listingJson("outside", 37.05, -122.0)));
 
-        List<ListingResponseDto> result = realEstateService.searchHouses(List.of(park), 2.0);
+        List<ListingResponseDto> result = realEstateService.searchHouses(List.of(park), 2.0, null, null);
 
         assertTrue(result.isEmpty(), "Expected listings beyond radius to be filtered out");
         verify(restTemplate, times(1)).exchange(anyString(), eq(HttpMethod.GET), any(), eq(String.class));
@@ -102,7 +102,7 @@ class RealEstateServiceTest {
                 .thenReturn(ResponseEntity.ok(listingJson("a1", 10.0, 20.0)))
                 .thenReturn(ResponseEntity.ok(listingJson("b1", 11.0, 21.0)));
 
-        List<ListingResponseDto> result = realEstateService.searchHouses(List.of(parkA, parkB), 2.0);
+        List<ListingResponseDto> result = realEstateService.searchHouses(List.of(parkA, parkB), 2.0, null, null);
 
         assertEquals(2, result.size());
         assertTrue(result.stream().anyMatch(l -> "a1".equals(l.getId()) && "Park A".equals(l.getNearestDogParkName())));
