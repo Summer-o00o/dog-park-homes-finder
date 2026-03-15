@@ -25,11 +25,8 @@
 flowchart LR
     U[User]
 
-    subgraph FE[Frontend: React + Vite + TypeScript]
-        APP[App.tsx\nsearch form + state]
-        API[search.ts\nPOST /api/search]
-        LIST[ListingCard\nresults list]
-        MAP[ResultsMap\nGoogle Maps markers]
+    subgraph FE[Frontend: React]
+        UI[Frontend App]
     end
 
     subgraph BE[Backend: Spring Boot API]
@@ -37,24 +34,25 @@ flowchart LR
         NOVA[NovaService]
         GPLACES[GooglePlacesService]
         RE[RealEstateService]
-        RENT[RentCastClient]
         STREET[StreetViewService]
         IMG[ImageService]
-        STATIC[/images/** static handler]
-        CACHE[(Redis cache\noptional)]
+        CACHE[(Redis cache optional)]
     end
 
     subgraph EXT[External Services]
-        BEDROCK[Amazon Bedrock\nNova 2 Lite]
-        PLACES[Google Places API]
-        GMAPS[Google Maps JS API]
+        BEDROCK[Amazon Bedrock Nova 2 Lite]
+        PLACES[Google Places API v1]
         SVIEW[Google Street View API]
-        RCAST[RentCast Listings API]
+        RCAST[RentCast Sale Listings API]
     end
 
-    U --> APP
-    APP --> API
-    API --> CTRL
+    classDef frontend fill:#e0f2fe,stroke:#0284c7,color:#0f172a,stroke-width:1.5px;
+    classDef backend fill:#dcfce7,stroke:#16a34a,color:#0f172a,stroke-width:1.5px;
+    classDef external fill:#fef3c7,stroke:#d97706,color:#0f172a,stroke-width:1.5px;
+    classDef cache fill:#f3e8ff,stroke:#9333ea,color:#0f172a,stroke-width:1.5px;
+
+    U --> UI
+    UI <--> CTRL
 
     CTRL --> NOVA
     NOVA --> BEDROCK
@@ -65,19 +63,16 @@ flowchart LR
     NOVA <--> CACHE
 
     CTRL --> RE
-    RE --> RENT
-    RENT --> RCAST
-    RENT --> STREET
+    RE --> RCAST
+    RE --> STREET
     STREET --> SVIEW
     STREET --> IMG
-    IMG --> STATIC
-    RENT <--> CACHE
+    RE <--> CACHE
 
-    CTRL --> API
-    API --> LIST
-    API --> MAP
-    MAP --> GMAPS
-    LIST -. listing image URLs .-> STATIC
+    class UI frontend
+    class CTRL,NOVA,GPLACES,RE,STREET,IMG backend
+    class BEDROCK,PLACES,SVIEW,RCAST external
+    class CACHE cache
 ```
 
 ### Request flow
@@ -86,8 +81,8 @@ flowchart LR
 2. `frontend/src/api/search.ts` posts that query to `POST /api/search`.
 3. `SearchController` asks `NovaService` to extract structured search filters, especially location and radius.
 4. `GooglePlacesService` searches for dog parks, fetches reviews for the top rated parks, and calls `NovaService` again to score review quality dimensions.
-5. `RealEstateService` loops through the selected parks and uses `RentCastClient` to fetch nearby listings.
-6. `RentCastClient` enriches each listing with a locally served image path via `StreetViewService` and `ImageService`.
+5. `RealEstateService` loops through the selected parks, queries RentCast for nearby sale listings, and assigns nearest-park metadata to matches within the chosen radius.
+6. `StreetViewService` and `ImageService` generate listing images used by the frontend.
 7. The API returns combined `listings` and `dogParks`, and the frontend renders them as cards plus Google Map markers.
 
 ### Component responsibilities
@@ -96,8 +91,8 @@ flowchart LR
 - **Search orchestration**: `SearchController` is the single backend entry point and coordinates parsing, dog park lookup, and listing retrieval.
 - **AI layer**: `NovaService` handles both prompt parsing and dog park review analysis through Amazon Bedrock using Nova 2 Lite.
 - **Location intelligence**: `GooglePlacesService` finds dog parks, filters for high ratings, fetches reviews, and attaches Nova-generated park analysis.
-- **Listing enrichment**: `RealEstateService` computes nearest-park metadata; `RentCastClient` fetches listings; `StreetViewService` and `ImageService` generate and cache property imagery.
-- **Caching and delivery**: Redis is optional and backs `@Cacheable` calls for dog park analysis and listing fetches; Spring also serves cached listing images from `/images/**`.
+- **Listing enrichment**: `RealEstateService` fetches RentCast listings, filters them by computed distance to each park, and attaches nearest-park metadata; `StreetViewService` and `ImageService` generate locally served property imagery.
+- **Caching and delivery**: Redis is optional and backs dog park analysis plus listing fetches.
 
 ## How we use Amazon Nova
 
