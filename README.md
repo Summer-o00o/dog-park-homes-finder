@@ -19,6 +19,16 @@
 5. Backend calls **RentCast** for homes-for-sale near the selected dog park(s), and assigns nearest park + distance.
 6. Frontend renders results as a list + map, with markers for homes and dog parks.
 
+## How we use Amazon Nova
+
+We use **Amazon Nova** (via AWS Bedrock) for two distinct tasks. Model: **`us.amazon.nova-2-lite-v1:0`**.
+
+1. **Natural-language search parsing**  
+   The user’s query (e.g. “Bellevue within 1 mile”, “Seattle walkable distance”) is sent to Nova. Nova returns structured filters: `location`, optional `radius_miles` (including “walkable” → 0.5 mi, or default 2 mi), and validity. If the query has no clear location, Nova returns `valid: false` with a short message so we can prompt the user to re-enter.
+
+2. **Dog park review analysis**  
+   For each dog park we fetch Google reviews, then call Nova to turn that text into structured scores (e.g. parking, cleanliness, dog-friendliness). Those scores are cached by park ID and shown in the UI so users can compare parks at a glance.
+
 ## Prerequisites
 
 - **Node.js** (for frontend)
@@ -113,7 +123,7 @@ The images directory is intentionally ignored by git (`backend/src/main/resource
 ## Tech notes / implementation details
 
 - **AI model**
-  - Amazon **Nova 2 Lite** is used for prompt parsing and dog park review analysis (via AWS Bedrock).
+  - Amazon **Nova 2 Lite** (`us.amazon.nova-2-lite-v1:0`) is used for prompt parsing and dog park review analysis (via AWS Bedrock). See [How we use Amazon Nova](#how-we-use-amazon-nova) above.
 - **Ports**
   - Backend: `8000` (`server.port=8000`)
   - Frontend: `5173` (Vite dev server)
