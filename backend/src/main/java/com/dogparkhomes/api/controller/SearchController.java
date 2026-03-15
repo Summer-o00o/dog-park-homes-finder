@@ -35,13 +35,13 @@ public class SearchController {
     public SearchResponseDto search(@RequestBody SearchRequestDto request) {
         String query = request.getQuery();
         if (query == null || query.isBlank()) {
-            throw new InvalidSearchQueryException("Please enter a search query (e.g. city or address).");
+            throw new InvalidSearchQueryException("Please enter a search query (e.g. city, ZIP code, or address).");
         }
         SearchFiltersDto filters = novaService.parseUserQuery(query);
 
         String location = filters.getLocation();
         if (location == null || location.isBlank()) {
-            throw new InvalidSearchQueryException("We couldn't identify a location. Please enter a city or address.");
+            throw new InvalidSearchQueryException("We couldn't identify a location. Please enter a city, ZIP code, or address.");
         }
 
         // call Google Places API

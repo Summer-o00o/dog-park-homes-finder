@@ -40,7 +40,7 @@ const App: React.FC = () => {
           <form className="chat-form" onSubmit={handleSubmit}>
             <textarea
               className="chat-input"
-              placeholder="e.g. House in Bellevue, the dog park is within 1 mile"
+              placeholder="e.g. Seattle, 98004, or 123 Main St Bellevue — dog park within 1 mile"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onInput={(e) => {

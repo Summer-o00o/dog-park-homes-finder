@@ -60,3 +60,6 @@ coverage/
 *.lcov
 .frontend-coverage/
 
+# Demo / local only (do not sync to GitHub)
+docs/DEMO_VIDEO_SCRIPT.md
+
