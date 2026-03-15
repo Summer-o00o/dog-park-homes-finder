@@ -32,10 +32,18 @@ body {
 .app-header h1 {
   font-size: clamp(2.5rem, 4vw, 3rem);
   margin: 0;
+}
+
+.app-header-title {
   background: linear-gradient(to right, #38bdf8, #a855f7);
   -webkit-background-clip: text;
   color: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
 }
+
 
 .app-header p {
   margin-top: 0.75rem;

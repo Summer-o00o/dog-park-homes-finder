@@ -12,6 +12,13 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const handleGoHome = () => {
+    setPrompt('');
+    setListings(null);
+    setDogParks(null);
+    setError(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -32,7 +39,16 @@ const App: React.FC = () => {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Dog Park Homes Finder</h1>
+        <h1>
+          <button
+            type="button"
+            className="app-header-title"
+            onClick={handleGoHome}
+            aria-label="Go to home"
+          >
+            Dog Park Homes Finder
+          </button>
+        </h1>
         <p>Find homes your dog will love.</p>
       </header>
       <main className="app-main">
@@ -40,7 +56,7 @@ const App: React.FC = () => {
           <form className="chat-form" onSubmit={handleSubmit}>
             <textarea
               className="chat-input"
-              placeholder="e.g. Seattle, 98004, or 123 Main St Bellevue — dog park within 1 mile"
+              placeholder="e.g. Seattle, dog park within 1 mile"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onInput={(e) => {
