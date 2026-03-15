@@ -8,7 +8,6 @@ import software.amazon.awssdk.services.bedrockruntime.model.InvokeModelResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.dogparkhomes.api.dto.response.SearchFiltersDto;
-import com.dogparkhomes.api.exception.InvalidSearchQueryException;
 
 import java.util.List;
 import com.dogparkhomes.api.dto.response.DogParkAnalysisDto;
@@ -87,18 +86,8 @@ public class NovaService {
                        .trim();
 
             ObjectMapper mapper2 = new ObjectMapper();
-            SearchFiltersDto filters = mapper2.readValue(text, SearchFiltersDto.class);
+            return mapper2.readValue(text, SearchFiltersDto.class);
 
-            if (Boolean.FALSE.equals(filters.getValid()) || (filters.getMessage() != null && !filters.getMessage().isBlank())) {
-                String msg = filters.getMessage() != null && !filters.getMessage().isBlank()
-                        ? filters.getMessage()
-                        : "We couldn't identify a location. Please enter a city, ZIP code, or address.";
-                throw new InvalidSearchQueryException(msg);
-            }
-            return filters;
-
-        } catch (InvalidSearchQueryException e) {
-            throw e;
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Error calling Nova", e);

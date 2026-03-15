@@ -39,14 +39,20 @@ public class SearchController {
         }
         SearchFiltersDto filters = novaService.parseUserQuery(query);
 
+        // Use Nova's valid flag and message for semantic validity (e.g. gibberish, no place name)
+        if (Boolean.FALSE.equals(filters.getValid())) {
+            String msg = filters.getMessage() != null && !filters.getMessage().isBlank()
+                    ? filters.getMessage()
+                    : "We couldn't identify a location. Please enter a city, ZIP code, or address.";
+            throw new InvalidSearchQueryException(msg);
+        }
         String location = filters.getLocation();
         if (location == null || location.isBlank()) {
             throw new InvalidSearchQueryException("We couldn't identify a location. Please enter a city, ZIP code, or address.");
         }
 
         // call Google Places API
-        List<DogParkDto> parks =
-                googlePlacesService.searchDogParks(location);
+        List<DogParkDto> parks = googlePlacesService.searchDogParks(location);
 
         double radiusMiles = resolveRadiusMiles(filters);
 
