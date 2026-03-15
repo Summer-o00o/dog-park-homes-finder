@@ -19,6 +19,86 @@
 5. Backend calls **RentCast** for homes-for-sale near the selected dog park(s), and assigns nearest park + distance.
 6. Frontend renders results as a list + map, with markers for homes and dog parks.
 
+## Architecture Design
+
+```mermaid
+flowchart LR
+    U[User]
+
+    subgraph FE[Frontend: React + Vite + TypeScript]
+        APP[App.tsx\nsearch form + state]
+        API[search.ts\nPOST /api/search]
+        LIST[ListingCard\nresults list]
+        MAP[ResultsMap\nGoogle Maps markers]
+    end
+
+    subgraph BE[Backend: Spring Boot API]
+        CTRL[SearchController]
+        NOVA[NovaService]
+        GPLACES[GooglePlacesService]
+        RE[RealEstateService]
+        RENT[RentCastClient]
+        STREET[StreetViewService]
+        IMG[ImageService]
+        STATIC[/images/** static handler]
+        CACHE[(Redis cache\noptional)]
+    end
+
+    subgraph EXT[External Services]
+        BEDROCK[Amazon Bedrock\nNova 2 Lite]
+        PLACES[Google Places API]
+        GMAPS[Google Maps JS API]
+        SVIEW[Google Street View API]
+        RCAST[RentCast Listings API]
+    end
+
+    U --> APP
+    APP --> API
+    API --> CTRL
+
+    CTRL --> NOVA
+    NOVA --> BEDROCK
+
+    CTRL --> GPLACES
+    GPLACES --> PLACES
+    GPLACES --> NOVA
+    NOVA <--> CACHE
+
+    CTRL --> RE
+    RE --> RENT
+    RENT --> RCAST
+    RENT --> STREET
+    STREET --> SVIEW
+    STREET --> IMG
+    IMG --> STATIC
+    RENT <--> CACHE
+
+    CTRL --> API
+    API --> LIST
+    API --> MAP
+    MAP --> GMAPS
+    LIST -. listing image URLs .-> STATIC
+```
+
+### Request flow
+
+1. The user submits a natural-language housing query in the React app.
+2. `frontend/src/api/search.ts` posts that query to `POST /api/search`.
+3. `SearchController` asks `NovaService` to extract structured search filters, especially location and radius.
+4. `GooglePlacesService` searches for dog parks, fetches reviews for the top rated parks, and calls `NovaService` again to score review quality dimensions.
+5. `RealEstateService` loops through the selected parks and uses `RentCastClient` to fetch nearby listings.
+6. `RentCastClient` enriches each listing with a locally served image path via `StreetViewService` and `ImageService`.
+7. The API returns combined `listings` and `dogParks`, and the frontend renders them as cards plus Google Map markers.
+
+### Component responsibilities
+
+- **Frontend UI**: `App.tsx` owns search state and result orchestration; `ListingCard` renders listing details; `ResultsMap` renders homes and dog parks on Google Maps.
+- **Search orchestration**: `SearchController` is the single backend entry point and coordinates parsing, dog park lookup, and listing retrieval.
+- **AI layer**: `NovaService` handles both prompt parsing and dog park review analysis through Amazon Bedrock using Nova 2 Lite.
+- **Location intelligence**: `GooglePlacesService` finds dog parks, filters for high ratings, fetches reviews, and attaches Nova-generated park analysis.
+- **Listing enrichment**: `RealEstateService` computes nearest-park metadata; `RentCastClient` fetches listings; `StreetViewService` and `ImageService` generate and cache property imagery.
+- **Caching and delivery**: Redis is optional and backs `@Cacheable` calls for dog park analysis and listing fetches; Spring also serves cached listing images from `/images/**`.
+
 ## How we use Amazon Nova
 
 We use **Amazon Nova** (via AWS Bedrock) for two distinct tasks. Model: **`us.amazon.nova-2-lite-v1:0`**.
@@ -147,4 +227,3 @@ Backend:
 ```bash
 mvn test
 ```
-
