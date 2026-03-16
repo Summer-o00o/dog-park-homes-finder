@@ -36,7 +36,7 @@ flowchart LR
         RE[RealEstateService]
         STREET[StreetViewService]
         IMG[ImageService]
-        CACHE[(Redis cache optional)]
+        CACHE[(Redis cache)]
     end
 
     subgraph EXT[External Services]
