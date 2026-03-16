@@ -16,7 +16,7 @@ Can I find a home near a dog park that my dog will actually love?
 
 So I decided to build it.
 
-Dog Park Homes Finder is a full-stack app that helps people search for homes for sale near highly rated dog parks. The user can enter a natural-language prompt, for example: "Seattle, under 900k, within walking distance of a clean dog park."
+Dog Park Homes Finder is a full-stack app that helps people search for homes for sale near highly rated dog parks. The user can enter a natural-language prompt, for example: "Bellevue, under 750k, within walking distance of a dog park."
 
 On screen:
 - Show the home screen.
