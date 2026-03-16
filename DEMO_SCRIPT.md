@@ -67,6 +67,8 @@ What makes this project meaningful to me is that it came from a real problem we 
 
 Amazon Nova helped me build a search experience that feels natural and intelligent instead of forcing users through a traditional filter-based workflow.
 
+Looking ahead, I want to make the product more useful by improving the park scoring, supporting richer search intent, and expanding the idea beyond dog parks into a broader way of finding homes near the places people care about most, whether that's pet amenities, hospitals, shops, or other everyday destinations.
+
 Thank you for watching, and I hope Dog Park Homes Finder helps more pet owners find homes their dogs will love.
 
 On screen:
